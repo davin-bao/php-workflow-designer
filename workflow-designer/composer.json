@@ -1,0 +1,27 @@
+{
+  "name": "davin-bao/workflow-designer",
+  "description": "php workflow designer",
+  "keywords": ["php", "workflow"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "DavinBao",
+      "email": "davin.bao@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.9",
+    "davin-bao/workflow-core": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "DavinBao\\WorkflowCore\\": "../workflow-core/src/",
+      "DavinBao\\WorkflowDesigner\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.1-dev"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "davin-bao/workflow-core",
+  "description": "php workflow core",
+  "keywords": ["php", "workflow"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "DavinBao",
+      "email": "davin.bao@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.5.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "DavinBao\\WorkflowCore\\": "src/"
+    },
+    "files": [
+      "src/functions.php"
+    ]
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.1-dev"
+    }
+  }
+}
