@@ -1,6 +1,7 @@
 <?php
 namespace DavinBao\WorkflowDesigner;
 use DavinBao\WorkflowCore\Config;
+use DavinBao\WorkflowCore\ActivityParser;
 
 /**
  * Service Class
@@ -38,6 +39,52 @@ class Service {
         echo 'export';
     }
 
+    public function templates(){
+        $templatesXml = $this->getCoreActivitiesForTemplate();
+        echo '<mxEditor><Array as="templates">
+		<add as="group">
+			<Group label="" description="" href="">
+				<mxCell vertex="1" style="group" connectable="0"/>
+			</Group>
+		</add>
+		<add as="edge">
+			<Connector label="" href="">
+				<mxCell edge="1">
+					<mxGeometry as="geometry" relative="1"/>
+				</mxCell>
+			</Connector>
+		</add>'.$templatesXml.'
+		</Array></mxEditor>';
+    }
+
+    public function toolbars(){
+        $toolbarXml = $this->getCoreActivitiesForToolbar();
+        echo '<mxDefaultToolbar>' .$toolbarXml. '</mxDefaultToolbar>';
+    }
+
+    private function getCoreActivitiesForTemplate(){
+        $path = '../../workflow-core/src/Activities';
+        $namespace = 'DavinBao\WorkflowCore\Activities\\';
+
+        $classes = ActivityParser::getClassesOfPath($path, $namespace);
+        $templatesXml = '';
+        foreach($classes as $class){
+            $templatesXml .= ActivityParser::getTemplate($class);
+        }
+        return $templatesXml;
+    }
+
+    private function getCoreActivitiesForToolbar(){
+        $path = '../../workflow-core/src/Activities';
+        $namespace = 'DavinBao\WorkflowCore\Activities\\';
+
+        $classes = ActivityParser::getClassesOfPath($path, $namespace);
+        $templatesXml = '';
+        foreach($classes as $class){
+            $templatesXml .= ActivityParser::getToolbar($class);
+        }
+        return $templatesXml;
+    }
 }
 
 

@@ -6,11 +6,13 @@ namespace DavinBao\WorkflowCore\Activities;
  *
  * @class  Activity
  */
-abstract class BeginActivity extends Activity {
+class BeginActivity extends Activity {
 
     const RETURN_CODE = [
         self::BEGIN_CODE
     ];
+
+    public $shape = 'begin';
 
     /**
      * @param array $parameters

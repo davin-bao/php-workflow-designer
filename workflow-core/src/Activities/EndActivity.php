@@ -6,11 +6,13 @@ namespace DavinBao\WorkflowCore\Activities;
  *
  * @class  Activity
  */
-abstract class EndActivity extends Activity {
+class EndActivity extends Activity {
 
     const RETURN_CODE = [
         self::END_CODE
     ];
+
+    public $inCode = 1;
 
     /**
      * @param array $parameters
