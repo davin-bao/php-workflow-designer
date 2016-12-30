@@ -12,11 +12,11 @@ use DavinBao\WorkflowCore\Model\Process;
  *
  * @class  Activity
  */
-class ProcessEngine {
+class Engine {
 
     public function init(){
-        if(!$this->isInstall()){
-            $this->install();
+        if(!self::isInstall()){
+            self::install();
         }
     }
 

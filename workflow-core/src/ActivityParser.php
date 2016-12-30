@@ -6,6 +6,40 @@ use Psy\Reflection\ReflectionConstant;
 class ActivityParser {
 
     /**
+     * get Flow list
+     * @param $path
+     * @return array
+     */
+    public static function getFlowList($path){
+        $flowList = [];
+        foreach (glob($path . '/*.xml') as $file) {
+            try{
+                $doc=new \DOMDocument();
+                //加载XML文件
+                $doc->load($file);
+                $workflowDoc = $doc->getElementsByTagName('Workflow');
+                $flowName = $workflowDoc && $workflowDoc->length > 0 && $workflowDoc->item(0)->hasAttribute('label') ? $workflowDoc->item(0)->getAttribute('label') : 'undefined';
+            }catch(\Exception $e){
+                $flowName = $e->getMessage();
+            }
+            array_push($flowList, [
+                'file_name'=> basename($file),
+                'flow_name'=> $flowName
+            ]);
+        }
+        return $flowList;
+    }
+
+    public static function getAllActivityClass(){
+        $classes = [];
+        $activitiesConfig = Config::get('activities_file_path');
+        foreach($activitiesConfig as $activityConfig){
+            $classes = array_merge($classes, static::getClassesOfPath($activityConfig['path'], $activityConfig['namespace']));
+        }
+        return $classes;
+    }
+
+    /**
      * 获取类名称
      * @param $path
      * @param $namespace
@@ -28,13 +62,23 @@ class ActivityParser {
         return $classes;
     }
 
+    /**
+     * 获取 Activity 模板 XML
+     * @param $className
+     * @return string
+     */
     public static function getTemplate($className){
         $class = new \ReflectionClass($className);
         if($class->isAbstract() || strpos($class->getShortName(), 'Activity') === false) return '';
         //获取 Activity Name
         $activityFullName = $class->getShortName();
         $activityShortName = substr($activityFullName, 0, strlen($activityFullName) - 8);
-        $activityStyle = empty($class->newInstance()->shape) ? 'ellipse' : $class->newInstance()->shape;
+        $activityStyle = $class->newInstance()->shape;
+        $activityFillColor = $class->newInstance()->shapeFillColor;
+        $activityWidth = $class->newInstance()->shapeWidth;
+        $activityHeight = $class->newInstance()->shapeHeight;
+        $activityIcon = $class->newInstance()->shapeIcon;
+        $activityPressedIcon = $class->newInstance()->shapePressedIcon;
         //获取出入参数
         $inProperties = [];
         $outProperties = [];
@@ -58,25 +102,13 @@ class ActivityParser {
         $outPropertiesStr = substr($outPropertiesStr, 0, strlen($outPropertiesStr) - 1);
 
         return '
-        <add as="' .$activityShortName. '">
+        <add as="' .$activityShortName. '"  icon="' .$activityIcon. '" pressedIcon="' .$activityPressedIcon. '" style="' .$activityStyle. '" fillColor="' .$activityFillColor. '">
 			<' .$activityFullName. ' label="' .$activityShortName. '" description="" ' .$inPropertiesStr. ' ' .$outPropertiesStr. '>
 				<mxCell vertex="1" style="' .$activityStyle. '">
-					<mxGeometry as="geometry" width="32" height="32"/>
+					<mxGeometry as="geometry" width="' .$activityWidth. '" height="' .$activityHeight. '"/>
 				</mxCell>
 			</' .$activityFullName. '>
 		</add>';
-    }
-
-    public static function getToolbar($className){
-        $class = new \ReflectionClass($className);
-        if($class->isAbstract() || strpos($class->getShortName(), 'Activity') === false) return '';
-        //获取 Activity Name
-        $activityFullName = $class->getShortName();
-        $activityShortName = substr($activityFullName, 0, strlen($activityFullName) - 8);
-        $activityLabel = $class->newInstance()->label;
-        $activityStyle = empty($class->newInstance()->shape) ? 'ellipse' : $class->newInstance()->shape;
-        $activityIcon = $activityStyle . '.gif';
-        return '<add as="' .$activityShortName. '" template="' .$activityShortName. '" icon="images/' .$activityIcon. '"/>';
     }
 
 }

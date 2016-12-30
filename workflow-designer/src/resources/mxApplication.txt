@@ -72,3 +72,6 @@ changesLost=All changes will be lost!
 swimlanes=Swimlanes
 travelBooking=Travel Booking
 notAvailable=Not available
+clickToOpen= Click to open
+open=Open
+addProperty=Add Property

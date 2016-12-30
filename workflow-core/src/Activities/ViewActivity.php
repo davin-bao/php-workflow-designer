@@ -17,8 +17,8 @@ abstract class ViewActivity extends Activity {
      * @param array $parameters
      * @return mixed
      */
-    protected function action(array $parameters){
-        $this->render($parameters);
+    protected function action(){
+        $this->render($this->dataCache);
         return self::USER_VIEW_RENDER_RETURN_CODE;
     }
 

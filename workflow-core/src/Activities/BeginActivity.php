@@ -13,12 +13,14 @@ class BeginActivity extends Activity {
     ];
 
     public $shape = 'begin';
+    public $shapeIcon = 'images/begin.gif';
+    public $shapePressedIcon = 'images/begin-pressed.gif';
 
     /**
      * @param array $parameters
      * @return mixed
      */
-    protected function action(array $parameters){
+    protected function action(){
         return self::BEGIN_CODE;
     }
 }

@@ -17,7 +17,7 @@
 		<add value="#CF0056"/>
 		<add value="#4679B6"/>
 	</Array>
-	<include name="server.php?_action=templates"/>
+	<!--<include name="server.php?_action=templates"/>-->
 	<Array as="templates">
 		<add as="group">
 			<Group label="" description="" href="">
@@ -31,13 +31,6 @@
 				</mxCell>
 			</Connector>
 		</add>
-		<!--<add as="begin">-->
-			<!--<BeginActivity label="Begin" description="" href="">-->
-				<!--<mxCell vertex="1" style="ellipse">-->
-					<!--<mxGeometry as="geometry" width="32" height="32"/>-->
-				<!--</mxCell>-->
-			<!--</BeginActivity>-->
-		<!--</add>-->
 		<add as="swimlane">
 			<Swimlane label="Swimlane" description="" href="">
 				<mxCell vertex="1" style="swimlane" connectable="0">
@@ -82,16 +75,6 @@
 			if (this.graph != null)
 			{
 				var layer = this.graph.model.root.getChildAt(0);
-				mxUtils.para(div,  mxResources.get('examples'));
-				mxUtils.linkInvoke(div, mxResources.get('newDiagram'), this,
-					'open', 'diagrams/empty.xml', off);
-				mxUtils.br(div);
-				mxUtils.linkInvoke(div, mxResources.get('swimlanes'), this,
-					'open', 'diagrams/swimlanes.xml', off);
-				mxUtils.br(div);
-				mxUtils.linkInvoke(div, mxResources.get('travelBooking'), this,
-					'open', 'diagrams/travel-booking.xml', off);
-				mxUtils.br(div);
 
 				if (!this.graph.isSelectionEmpty())
 				{
@@ -171,9 +154,8 @@
 					var value = model.getValue(cell);
 					if (mxUtils.isNode(value))
 					{
-						mxUtils.para(div, 'Parameters');
+						mxUtils.para(div, 'Properties');
 						var attrs = value.attributes;
-						var texts = [];
 
 						for (var i = 0; i < attrs.length; i++)
 						{
@@ -182,13 +164,22 @@
 						}
 					}
 					mxUtils.br(div);
-				}
-				else if (layer.getChildCount() > 0)
-				{
-					mxUtils.para(div, mxResources.get('selection'));
-					mxUtils.linkAction(div, mxResources.get('selectAll'),
-						this, 'selectAll', off);
+				}else{
+					mxUtils.para(div, 'Properties');
+					var attrs = this.graph.model.root.value.attributes;
+					mxUtils.linkAction(div, mxResources.get('addProperty'), this, 'addFlowProperty', off);
 					mxUtils.br(div);
+					for (var i = 0; i < attrs.length; i++) {
+						mxUtils.linkAction(div, attrs[i].nodeName + ':' + attrs[i].value, this, 'showProperties', off);
+						mxUtils.br(div);
+					}
+
+					if (layer.getChildCount() > 0){
+						mxUtils.para(div, mxResources.get('selection'));
+						mxUtils.linkAction(div, mxResources.get('selectAll'),
+							this, 'selectAll', off);
+						mxUtils.br(div);
+					}
 				}
 
 				mxUtils.br(div);

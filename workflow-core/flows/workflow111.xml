@@ -1,0 +1,35 @@
+<mxGraphModel>
+    <root>
+        <Workflow label="MyWorkflow" description="" href="" id="0">
+            <mxCell/>
+        </Workflow>
+        <Layer label="Default Layer" id="1">
+            <mxCell parent="0"/>
+        </Layer>
+        <EndActivity label="End" description="" inCode="1" id="3">
+            <mxCell style="ellipse" vertex="1" parent="1">
+                <mxGeometry x="590" y="320" width="32" height="32" as="geometry"/>
+            </mxCell>
+        </EndActivity>
+        <Task label="Task" description="" href="" id="4">
+            <mxCell vertex="1" parent="1">
+                <mxGeometry x="518" y="200" width="72" height="32" as="geometry"/>
+            </mxCell>
+        </Task>
+        <Connector label="" href="" id="5">
+            <mxCell edge="1" parent="1" source="4" target="3">
+                <mxGeometry relative="1" as="geometry"/>
+            </mxCell>
+        </Connector>
+        <BeginActivity label="Begin" description="" id="9">
+            <mxCell style="begin" vertex="1" parent="1">
+                <mxGeometry x="420" y="100" width="32" height="32" as="geometry"/>
+            </mxCell>
+        </BeginActivity>
+        <Connector label="" href="" id="10">
+            <mxCell edge="1" parent="1" source="9" target="4">
+                <mxGeometry relative="1" as="geometry"/>
+            </mxCell>
+        </Connector>
+    </root>
+</mxGraphModel>

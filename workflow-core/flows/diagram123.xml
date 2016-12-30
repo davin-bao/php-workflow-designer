@@ -1,0 +1,30 @@
+<mxGraphModel>
+    <root>
+        <Workflow label="diagram123" description="" href="" id="0">
+            <mxCell/>
+        </Workflow>
+        <Layer label="Default Layer" id="1">
+            <mxCell parent="0"/>
+        </Layer>
+        <Task label="sdfsdf" description="" href="" id="2">
+            <mxCell parent="1" vertex="1">
+                <mxGeometry x="280" y="110" width="72" height="32" as="geometry"/>
+            </mxCell>
+        </Task>
+        <Subprocess label="dfdsfsdf" description="" href="" id="3">
+            <mxCell style="rounded" parent="1" vertex="1">
+                <mxGeometry x="710" y="120" width="72" height="32" as="geometry"/>
+            </mxCell>
+        </Subprocess>
+        <Edge label="" description="" id="4">
+            <mxCell parent="1" source="2" target="3" edge="1">
+                <mxGeometry relative="1" as="geometry"/>
+            </mxCell>
+        </Edge>
+        <BeginActivity label="cxsdfsdf" description="" id="5">
+            <mxCell style="begin" parent="1" vertex="1">
+                <mxGeometry x="280" y="200" width="32" height="32" as="geometry"/>
+            </mxCell>
+        </BeginActivity>
+    </root>
+</mxGraphModel>

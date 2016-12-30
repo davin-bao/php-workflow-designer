@@ -1,7 +1,6 @@
 <?php
 namespace DavinBao\WorkflowCore\Exceptions;
 
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * WorkflowException.
@@ -10,7 +9,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * @author davin.bao
  * @since 2016/7/15 9:34
  */
-class WorkflowException extends HttpException
+class WorkflowException extends \Exception
 {
     /**
      * @var array 携带一定的业务数据
@@ -27,7 +26,7 @@ class WorkflowException extends HttpException
     public function __construct( $message = null,$code = 500, \Exception $previous = null, $data = [])
     {
         $this->data = $data;
-        parent::__construct($code, $message, $previous, array(), $code);
+        parent::__construct($message, $code, $previous);
     }
 
     /**

@@ -11,7 +11,8 @@
   ],
   "require": {
     "php": ">=5.5.9",
-    "davin-bao/workflow-core": "dev-master"
+    "monolog/monolog": "~1.11"
+
   },
   "autoload": {
     "psr-4": {

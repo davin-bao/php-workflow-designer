@@ -2,13 +2,13 @@
 namespace DavinBao\WorkflowCore\Exceptions;
 
 /**
- * FlowIsNullException.
+ * FlowParseException.
  *
- * Flow 未定义 开始节点 或为 NULL
+ * Flow 解析错误
  * @author davin.bao
  * @since 2016/7/15 9:34
  */
-class FlowIsNullException extends WorkflowException
+class FlowParseException extends WorkflowException
 {
     //
 }

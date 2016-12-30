@@ -2,6 +2,7 @@
 namespace DavinBao\WorkflowDesigner;
 use DavinBao\WorkflowCore\Config;
 use DavinBao\WorkflowCore\ActivityParser;
+use DavinBao\WorkflowCore\Flows\Flow;
 
 /**
  * Service Class
@@ -16,15 +17,36 @@ class Service {
         call_user_func_array(array($this, $action), array($request));
     }
 
-    public function open(){
-        echo 'open';
+    public function index(){
+        header('Content-Type:text/xml');
+        $flowFilePath = Config::get('flow_file_path');
+        $flowList = ActivityParser::getFlowList($flowFilePath);
+        $flowXml = '';
+        foreach($flowList as $flow){
+            $flowXml .= '<Flow src="' .$flow['file_name']. '" label="' .$flow['flow_name'] .'"></Flow>';
+        }
+        echo '<Flows>'.$flowXml.'</Flows>';
+    }
+
+    public function open($request){
+        $filename = array_get($request, 'filename');
+        $flowFilePath = Config::get('flow_file_path');
+        if(is_null($filename)){
+            echo '文件名称为空，打开失败！';
+            die;
+        }elseif(!file_exists($flowFilePath . $filename)){
+            echo '文件不存在，打开失败！';
+            die;
+        }
+        header('Content-Type:text/xml');
+        echo file_get_contents($flowFilePath . $filename);
     }
 
     public function save($request){
         $filename = array_get($request, 'filename');
         $xml = array_get($request, 'xml');
         if(is_null($filename) || is_null($xml)){
-            echo '输入测文件名称或内容为空，保存失败！';
+            echo '输入的文件名称或内容为空，保存失败！';
             die;
         }
 
@@ -36,52 +58,24 @@ class Service {
     }
 
     public function export(){
+        var_dump(Flow::newInstance('workflow', [
+            'logContactKey'=>'test123'
+        ])->run());
         echo 'export';
     }
 
     public function templates(){
+        header('Content-Type:text/xml');
         $templatesXml = $this->getCoreActivitiesForTemplate();
-        echo '<mxEditor><Array as="templates">
-		<add as="group">
-			<Group label="" description="" href="">
-				<mxCell vertex="1" style="group" connectable="0"/>
-			</Group>
-		</add>
-		<add as="edge">
-			<Connector label="" href="">
-				<mxCell edge="1">
-					<mxGeometry as="geometry" relative="1"/>
-				</mxCell>
-			</Connector>
-		</add>'.$templatesXml.'
-		</Array></mxEditor>';
-    }
-
-    public function toolbars(){
-        $toolbarXml = $this->getCoreActivitiesForToolbar();
-        echo '<mxDefaultToolbar>' .$toolbarXml. '</mxDefaultToolbar>';
+        echo '<Activities>'.$templatesXml.'</Activities>';
     }
 
     private function getCoreActivitiesForTemplate(){
-        $path = '../../workflow-core/src/Activities';
-        $namespace = 'DavinBao\WorkflowCore\Activities\\';
 
-        $classes = ActivityParser::getClassesOfPath($path, $namespace);
+        $classes = ActivityParser::getAllActivityClass();
         $templatesXml = '';
         foreach($classes as $class){
             $templatesXml .= ActivityParser::getTemplate($class);
-        }
-        return $templatesXml;
-    }
-
-    private function getCoreActivitiesForToolbar(){
-        $path = '../../workflow-core/src/Activities';
-        $namespace = 'DavinBao\WorkflowCore\Activities\\';
-
-        $classes = ActivityParser::getClassesOfPath($path, $namespace);
-        $templatesXml = '';
-        foreach($classes as $class){
-            $templatesXml .= ActivityParser::getToolbar($class);
         }
         return $templatesXml;
     }

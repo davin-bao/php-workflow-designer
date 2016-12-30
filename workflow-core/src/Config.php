@@ -11,7 +11,7 @@ use DavinBao\WorkflowCore\Exceptions\WorkflowException;
 class Config {
 
     public static function get($key){
-        $config = require_once __DIR__ . '/../config/config.php';
+        $config = require __DIR__ .DIRECTORY_SEPARATOR. '..'.DIRECTORY_SEPARATOR. 'config' .DIRECTORY_SEPARATOR. 'config.php';
 
         if(!isset($config[$key])){
             throw new WorkflowException('read config failed， can\'t read key ' . $key);

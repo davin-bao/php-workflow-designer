@@ -12,13 +12,14 @@ class EndActivity extends Activity {
         self::END_CODE
     ];
 
-    public $inCode = 1;
+    public $shapeIcon = 'images/end.gif';
+    public $shapePressedIcon = 'images/end-pressed.gif';
 
     /**
      * @param array $parameters
      * @return mixed
      */
-    protected function action(array $parameters){
+    protected function action(){
         return self::END_CODE;
     }
 }

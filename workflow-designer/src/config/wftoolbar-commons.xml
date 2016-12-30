@@ -1,7 +1,8 @@
 <mxDefaultToolbar>
+	<add as="new" action="new" icon="images/new.gif"/>
 	<add as="open" action="open" icon="images/open.gif"/>
 	<add as="save" action="save" icon="images/save.gif"/>
-	<add as="show" action="show" icon="images/preview.gif"/>
+	<!--<add as="show" action="show" icon="images/preview.gif"/>-->
 	<add as="print" action="print" icon="images/print.gif"/>
 	<add as="exportImage" action="exportImage" icon="images/image.gif"/>
 	<br/><hr/>

@@ -2,6 +2,7 @@
 namespace DavinBao\WorkflowCore\Model;
 
 use DateTime;
+use DavinBao\WorkflowCore\Flows\Flow;
 
 /**
  * Engine Class
@@ -25,10 +26,11 @@ class Process extends Model {
      */
     public static function newInstance($flowName, array $parameters= []){
         $model = new Process();
+        $flow = Flow::newInstance($flowName, $parameters);
         $model->save([
             'flow' => serialize($flow),
             'current_activity_label' => $flow->currentActivity->label,
-            'status' => $isEnd ? 1 : 0,
+            'status' => 0,
             'updated_at' => new DateTime()
         ], true);
     }
