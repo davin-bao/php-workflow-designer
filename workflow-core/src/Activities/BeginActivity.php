@@ -12,9 +12,9 @@ class BeginActivity extends Activity {
         self::BEGIN_CODE
     ];
 
-    public $shape = 'begin';
-    public $shapeIcon = 'images/begin.gif';
-    public $shapePressedIcon = 'images/begin-pressed.gif';
+    protected $shape = 'begin';
+    protected $shapeIcon = 'images/begin.gif';
+    protected $shapePressedIcon = 'images/begin-pressed.gif';
 
     /**
      * @param array $parameters

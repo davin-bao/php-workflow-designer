@@ -10,12 +10,12 @@ use DOMElement;
  *
  * @class  Event
  */
-class DataPool {
+trait DataPool {
 
     //输入参数列表, 生成模板时使用
-    public $inParameterKeys = [];
+    protected $inParameterKeys = [];
     //输出参数列表，生成模板时使用
-    public $outParameterKeys = [];
+    protected $outParameterKeys = [];
     //属性及数据缓存
     private $attributes = [];
 
@@ -30,6 +30,10 @@ class DataPool {
         $this->attributes[$key] = $value;
 
         return $this;
+    }
+
+    public function hasAttribute($key){
+        return isset($this->attributes[$key]);
     }
 
     /**

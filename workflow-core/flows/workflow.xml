@@ -1,35 +1,35 @@
 <mxGraphModel>
     <root>
-        <Workflow label="MyWorkflow" description="" href="" inLogContact="logContactKey" id="0">
+        <Workflow label="workflow" description="" href="" inLogContact="logContactKey" id="0">
             <mxCell/>
         </Workflow>
         <Layer label="Default Layer" id="1">
             <mxCell parent="0"/>
         </Layer>
-        <LogActivity label="Log" description="" inLogContent="logContactKey" outLogFileName="outContactKey" id="2">
-            <mxCell style="task" vertex="1" parent="1">
-                <mxGeometry x="650" y="170" width="32" height="32" as="geometry"/>
-            </mxCell>
-        </LogActivity>
         <BeginActivity label="Begin" description="" id="3">
-            <mxCell style="begin" vertex="1" parent="1">
+            <mxCell style="begin" parent="1" vertex="1">
                 <mxGeometry x="540" y="64" width="32" height="32" as="geometry"/>
             </mxCell>
         </BeginActivity>
-        <EndActivity label="End" description="" id="4">
-            <mxCell style="ellipse" vertex="1" parent="1">
-                <mxGeometry x="770" y="272" width="32" height="32" as="geometry"/>
+        <SubFlowActivity label="SubFlow" description="" flow_name="workflow111" id="6">
+            <mxCell style="task" parent="1" vertex="1">
+                <mxGeometry x="610" y="170" width="32" height="32" as="geometry"/>
+            </mxCell>
+        </SubFlowActivity>
+        <Connector label="0" href="" id="8">
+            <mxCell parent="1" source="3" target="6" edge="1">
+                <mxGeometry relative="1" as="geometry"/>
+            </mxCell>
+        </Connector>
+        <Connector label="4" href="" id="11">
+            <mxCell parent="1" source="6" target="13" edge="1">
+                <mxGeometry relative="1" as="geometry"/>
+            </mxCell>
+        </Connector>
+        <EndActivity description="" label="End" id="13">
+            <mxCell style="ellipse" parent="1" vertex="1">
+                <mxGeometry x="750" y="246" width="32" height="32" as="geometry"/>
             </mxCell>
         </EndActivity>
-        <Connector label="0" href="" id="5">
-            <mxCell edge="1" parent="1" source="3" target="2">
-                <mxGeometry relative="1" as="geometry"/>
-            </mxCell>
-        </Connector>
-        <Connector label="1" href="" id="6">
-            <mxCell edge="1" parent="1" source="2" target="4">
-                <mxGeometry relative="1" as="geometry"/>
-            </mxCell>
-        </Connector>
     </root>
 </mxGraphModel>

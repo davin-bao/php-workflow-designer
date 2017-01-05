@@ -8,9 +8,9 @@ namespace DavinBao\WorkflowCore\Activities;
  */
 abstract class TaskActivity extends Activity {
 
-    public $shape = 'task';
-    public $shapeIcon = 'images/task.gif';
-    public $shapePressedIcon = 'images/task-pressed.gif';
+    protected $shape = 'task';
+    protected $shapeIcon = 'images/task.gif';
+    protected $shapePressedIcon = 'images/task-pressed.gif';
 
 }
 

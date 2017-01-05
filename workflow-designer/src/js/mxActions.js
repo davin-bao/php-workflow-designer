@@ -24,12 +24,6 @@ var mxActions = {
             editor.graph.model.root.setAttribute(attrName, '');
             editor.refreshTasks();
         });
-        self._addAction('removeFlowProperty', function(event){
-            console.log(event);
-            var attrName = mxUtils.prompt('new property', '');
-            if(attrName == null || attrName == '') return;
-            editor.graph.model.root.setAttribute(attrName, '');
-        });
 
     }, open: function(src) {
         if(this.wnd != null){

@@ -10,11 +10,11 @@ class LogActivity extends TaskActivity {
 
     const RETURN_CODE = [1];
 
-    public $inParameterKeys = [
+    protected $inParameterKeys = [
         'inLogContent'
     ];
 
-    public $outParameterKeys = [
+    protected $outParameterKeys = [
         'outLogFileName'
     ];
 
