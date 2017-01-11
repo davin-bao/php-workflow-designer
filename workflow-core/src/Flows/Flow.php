@@ -51,11 +51,9 @@ class Flow extends Activity {
      * @throws FlowIsNullException
      */
     public function setCurrentActivities(array $currentActivityIds = [], array $currentLastActivityParameters = [], &$index = 0){
-        if($index >= count($currentActivityIds)){
-            throw new FlowParseException('流程（'. $this->label . ')设置当前活动(count:' .count($currentActivityIds). ')时超出了限制（index:' .$index. '）');
-        }
+
         foreach($this->activities as $activity){
-            if($activity->id == $currentActivityIds[$index]){
+            if($index < count($currentActivityIds) && $activity->id == $currentActivityIds[$index]){
                 $index++;
                 $this->currentActivity = $activity;
                 if($activity instanceof SubFlowActivity){
@@ -63,9 +61,11 @@ class Flow extends Activity {
                     $subFlow->setCurrentActivities($currentActivityIds, $currentLastActivityParameters, $index);
                 }else{
                     $this->currentActivity->setParameters($currentLastActivityParameters);
-                    return;
                 }
             }
+        }
+        if($index >= count($currentActivityIds)){
+            return;
         }
         throw new FlowParseException('流程（'. $this->label . ')不存在活动（ID:' .$currentActivityIds[$index]. '）');
     }

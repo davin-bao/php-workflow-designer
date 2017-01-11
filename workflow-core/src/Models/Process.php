@@ -3,6 +3,7 @@ namespace DavinBao\WorkflowCore\Models;
 
 use DateTime;
 use DavinBao\WorkflowCore\Activities\Activity;
+use DavinBao\WorkflowCore\Activities\EndActivity;
 use DavinBao\WorkflowCore\Flows\Flow;
 
 /**
@@ -27,7 +28,8 @@ class Process extends Model {
      */
     public static function newInstance($flowName, array $parameters= []){
         $model = new Process();
-        $flow = Flow::newInstance($flowName, $parameters);
+        $flow = Flow::newInstance($flowName);
+        $flow->setInAttributes($parameters);
         $currentActivities = $flow->getCurrentActivityList();
         $currentActivityIds = [];
         $currentLastActivityParameters = [];
@@ -51,7 +53,9 @@ class Process extends Model {
 
     public function start(){
         $process = $this;
-        $flow = Flow::newInstance($process->flow_name, json_decode($process->flow_parameters, true));
+        $flow = Flow::newInstance($process->flow_name);
+        $flow->setInAttributes(json_decode($process->flow_parameters, true));
+
         if(!($flow instanceof Flow)){
             throw new WorkflowException('process(ID: ' . $process->id . ')\'s flow unserialize fail');
         }
@@ -60,8 +64,7 @@ class Process extends Model {
         $flow->setCurrentActivities($currentActivityIds, $currentLastActivityParameters);
 
         $flow->onStop(function($returnCode) use($process, $flow){
-            $isEnd = $returnCode === Flow::END_CODE;
-            $process->stop($flow, $isEnd);
+            $process->stop($flow);
         });
 
         $flow->run();
@@ -71,15 +74,18 @@ class Process extends Model {
      * 停止该进程
      *
      * @param $flow
-     * @param $isEnd
      */
-    public function stop($flow, $isEnd){
+    public function stop($flow){
         $currentActivities = $flow->getCurrentActivityList();
         $currentActivityIds = [];
         $currentLastActivityParameters = [];
         foreach($currentActivities as $key=>$currentActivity){
             $currentActivityIds[$key] = $currentActivity->id;
             $currentLastActivityParameters = $currentActivity->getParameters();
+        }
+        $isEnd = false;
+        if($flow->currentActivity instanceof EndActivity){
+            $isEnd = true;
         }
 
         $this->save([

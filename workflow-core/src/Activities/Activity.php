@@ -18,8 +18,8 @@ abstract class Activity extends Node {
 
     //常用返回码定义
     const BEGIN_CODE = 0;
-    const END_CODE = -1;
-    const USER_VIEW_RENDER_RETURN_CODE = -2;    //用户界面渲染后的返回码
+    const END_CODE = 0;
+    const USER_VIEW_RENDER_RETURN_CODE = -1;    //用户界面渲染后的返回码
 
     const EXCEPTION_CODE = -500;
 

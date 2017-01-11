@@ -17,8 +17,7 @@ class LogActivity extends SelectActivity {
     ];
 
     protected $outParameterKeys = [
-        'outLogFileName'=>'34',
-        'test'=>'213'
+        'outLogFileName'=>'34'
     ];
 
     public function action(){

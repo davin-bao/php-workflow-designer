@@ -64,10 +64,10 @@ class Service {
 
     public function export(){
 
-        Engine::init()->createProcess('workflow1', [
-            'logContactKey'=>'test123'
-        ])->start();
-//        Engine::init()->setProcess(9)->start();
+//        Engine::init()->createProcess('workflow1', [
+//            'logContactKey'=>'test123'
+//        ])->start();
+        Engine::init()->setProcess(38)->start();
 
 //        print_r(Flow::getXml('workflow1'));
 //        print_r(Flow::newInstance('workflow1', [

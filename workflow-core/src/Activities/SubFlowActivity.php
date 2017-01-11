@@ -23,12 +23,13 @@ class SubFlowActivity extends Activity {
     private $flow = null;
 
     public function action(){
+        $this->flow->setInAttributes($this->parameters);
         return $this->flow->run();
     }
 
     protected function initAttributes(){
         parent::initAttributes();
-        $this->flow = Flow::newInstance($this->flowName, $this->parameters);
+        $this->flow = Flow::newInstance($this->flowName);
     }
 
     public function getFlow(){
