@@ -10,6 +10,7 @@ window.EXPORT_URL = window.EXPORT_URL || '/server.php?_action=export';
 window.SAVE_URL = window.SAVE_URL || '/server.php?_action=save';
 window.INDEX_URL = window.INDEX_URL || '/server.php?_action=index'; //flow list
 window.OPEN_URL = window.OPEN_URL || '/server.php?_action=open';
+window.ACTIVITY_LIST_URL = window.ACTIVITY_LIST_URL || '/server.php?_action=activities';
 window.RESOURCES_PATH = window.RESOURCES_PATH || 'resources';
 window.RESOURCE_BASE = window.RESOURCE_BASE || window.RESOURCES_PATH + '/grapheditor';
 window.STENCIL_PATH = window.STENCIL_PATH || 'stencils';

@@ -1,5 +1,5 @@
 // Use http://centricle.com/tools/ascii-hex/ for hex codes
-urlHelp=help/index.html
+urlHelp=/help.html
 lastSaved=Last Saved
 currentFile=Current File
 toolbar=Tools

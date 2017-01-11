@@ -1,4 +1,4 @@
-function mxBegin(bounds, fill, stroke, strokewidth)
+function mxEnd(bounds, fill, stroke, strokewidth)
 {
 	mxShape.call(this);
 	this.bounds = bounds;
@@ -10,14 +10,14 @@ function mxBegin(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxUtils.extend(mxBegin, mxShape);
+mxUtils.extend(mxEnd, mxShape);
 
 /**
  * Function: paintVertexShape
  *
  * Redirects to redrawPath for subclasses to work.
  */
-mxBegin.prototype.paintVertexShape = function(c, x, y, w, h)
+mxEnd.prototype.paintVertexShape = function(c, x, y, w, h)
 {
 	c.translate(x, y);
 	c.begin();
@@ -30,7 +30,7 @@ mxBegin.prototype.paintVertexShape = function(c, x, y, w, h)
  *
  * Draws the path for this shape.
  */
-mxBegin.prototype.redrawPath = function(c, x, y, w, h)
+mxEnd.prototype.redrawPath = function(c, x, y, w, h)
 {
 	c.moveTo(h/2, 0);
 	c.lineTo(w-h/2, 0);
@@ -42,4 +42,4 @@ mxBegin.prototype.redrawPath = function(c, x, y, w, h)
 	c.close();
 };
 
-mxCellRenderer.registerShape('begin', mxBegin);
+mxCellRenderer.registerShape('end', mxEnd);

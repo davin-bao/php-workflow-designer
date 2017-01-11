@@ -1,6 +1,7 @@
 <?php
-namespace DavinBao\WorkflowCore\Model;
+namespace DavinBao\WorkflowCore\Models;
 
+use DavinBao\WorkflowCore\Config;
 use DavinBao\WorkflowCore\Exceptions\WorkflowException;
 use PDO;
 
@@ -22,6 +23,8 @@ class Model {
      */
     protected $attributes = [];
 
+    protected $dates = ['created_at', 'updated_at'];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -29,8 +32,14 @@ class Model {
      */
     protected $fillable = [];
 
+    protected static $unguarded = false;
+
     public function __construct(array $attributes = []) {
         $this->fill($attributes);
+    }
+
+    protected function getTableName(){
+        return strtolower(basename(get_called_class()));
     }
 
     /**
@@ -61,10 +70,17 @@ class Model {
 
         foreach($attributes as $key=>$value){
             if(in_array($key, $this->fillable)){
+                if(in_array($key, $this->dates)){
+                    $value = $this->asDateTime($value);
+                }
                 array_push($insertSqlFieldList, $key);
-                array_push($insertSqlValueList, $value);
+                array_push($insertSqlValueList, '\'' . $value . '\'');
                 array_push($updateSqlFieldList, $key . '=\'' . $value . '\'');
             }
+        }
+        if(in_array('created_at', $this->dates)){
+            array_push($insertSqlFieldList, 'created_at');
+            array_push($insertSqlValueList, '\'' . $this->asDateTime(new \DateTime('now')) . '\'');
         }
         if(count($attributes)<=0 || count($insertSqlFieldList)<=0 || count($insertSqlValueList)<=0 || count($insertSqlFieldList) !== count($insertSqlValueList)){
             return true;
@@ -76,7 +92,25 @@ class Model {
             $query = 'INSERT INTO ' . $this->getTableName() . ' ('. implode(',', $insertSqlFieldList) .') VALUES (' . implode(',', $insertSqlValueList) .')';
         }
 
-        return $this->exec($query);
+        $this->exec($query);
+        if(!$exist){
+            $id = $conn = $this->getConnection()->lastInsertId();
+            $id = is_numeric($id) ? (int) $id : $id;
+            $modelName = get_called_class();
+            return $modelName::get($id);
+        }
+        return $this;
+    }
+
+    protected function asDateTime($value){
+        if ($value instanceof \DateTime) {
+            return $value->format('Y-m-d H:i:s');
+        }if (is_numeric($value)) {
+            return (new \DateTime($value))->format('Y-m-d H:i:s');
+        }if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value)) {
+            return $value . ' 00:00:00';
+        }
+        return $value;
     }
 
     /**
@@ -85,10 +119,11 @@ class Model {
      * @return bool
      */
     public function exec($query){
-        $ret = $this->getConnection()->exec($query);
+        $conn = $this->getConnection();
+        $ret = $conn->exec($query);
 
-        if(!$ret){
-            throw new WorkflowException($this->getConnection()->lastErrorMsg());
+        if($ret === false){
+            throw new WorkflowException($conn->lastErrorMsg());
         } else {
             return true;
         }
@@ -101,7 +136,7 @@ class Model {
      */
     public function query($query){
         $result = $this->getConnection()->query($query);
-        return $result->fetchArray(SQLITE3_ASSOC);
+        return $result->fetchAll();
     }
 
     /**
@@ -110,20 +145,15 @@ class Model {
      * @return Model
      */
     public static function get($id){
-        $model = new Model();
-        $result = $model->getConnection()->query('SELECT * FROM ' . $model->getTable() . ' WHERE ' . $model->primaryKey . '=' . $id);
-        $result = $result->fetchArray(SQLITE3_ASSOC);
+        $model = new static();
+        $result = $model->getConnection()->query('SELECT * FROM ' . $model->getTableName()  . ' WHERE ' . $model->primaryKey . '="' . $id . '"');
+
+        $result = $result->fetchAll();
         if(isset($result[0])) {
             $model->fill($result[0]);
             return $model;
         }
         return null;
-    }
-
-    public static function newInstance($attributes = []) {
-        $model = new static((array) $attributes);
-
-        return $model;
     }
 
     /**

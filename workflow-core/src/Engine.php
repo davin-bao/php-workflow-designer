@@ -2,10 +2,9 @@
 namespace DavinBao\WorkflowCore;
 
 use DavinBao\WorkflowCore\Activities;
-use DavinBao\WorkflowCore\Flows\Flow;
 use DavinBao\WorkflowCore\Exceptions\WorkflowException;
-use DavinBao\WorkflowCore\Model\Model;
-use DavinBao\WorkflowCore\Model\Process;
+use DavinBao\WorkflowCore\Models\Model;
+use DavinBao\WorkflowCore\Models\Process;
 
 /**
  * Engine Class
@@ -14,14 +13,28 @@ use DavinBao\WorkflowCore\Model\Process;
  */
 class Engine {
 
-    public function init(){
+    private $process = null;
+
+    public static function init(){
+
         if(!self::isInstall()){
             self::install();
         }
+        return new Engine();
     }
 
-    public function start($processId){
-        $this->init();
+    public function createProcess($flowName, array $parameters = []){
+        $this->process = Process::newInstance($flowName, $parameters);
+        return $this;
+    }
+
+    public function setProcess($processId){
+        $this->process = Process::get($processId);
+        return $this;
+    }
+
+    public function start(){
+        $processId = $this->process->id;
         $process = Process::get($processId);
         if(is_null($process)){
             throw new WorkflowException('process(ID: ' . $processId . ') is not exist');
@@ -30,24 +43,11 @@ class Engine {
     }
 
     public static function isInstall(){
-        return file_exists('../install.lock');
+        return file_exists(Config::get('db_path'));
     }
 
     public static function install(){
-        Model::newInstance()->exec('CREATE TABLE `process` (
-                      `id` int(10) NOT NULL AUTO_INCREMENT,
-                      `parameters` text COMMENT \'输入参数\',
-                      `flow_label` varchar(255) DEFAULT NULL COMMENT \'流程标签\',
-                      `flow_name` varchar(255) DEFAULT NULL COMMENT \'流程名称\',
-                      `flow` text COMMENT \'流程数据\',
-                      `current_activity_label` varchar(255) DEFAULT NULL COMMENT \'当前活动标签\',
-                      `status` tinyint(3) unsigned DEFAULT \'0\' COMMENT \'执行状态(0 进行中、1 已结束)\',
-                      `created_at` datetime DEFAULT NULL COMMENT \'开始时间\',
-                      `updated_at` datetime DEFAULT NULL COMMENT \'最近执行时间\',
-                      PRIMARY KEY (`id`)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;');
-
-        file_put_contents('../install.lock', '1');
+        (new Model([]))->exec(Process::installSql());
         return true;
     }
 }

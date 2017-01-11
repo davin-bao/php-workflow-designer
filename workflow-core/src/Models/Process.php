@@ -1,7 +1,8 @@
 <?php
-namespace DavinBao\WorkflowCore\Model;
+namespace DavinBao\WorkflowCore\Models;
 
 use DateTime;
+use DavinBao\WorkflowCore\Activities\Activity;
 use DavinBao\WorkflowCore\Flows\Flow;
 
 /**
@@ -16,7 +17,7 @@ class Process extends Model {
      *
      * @var array
      */
-    protected $fillable = ['id', 'parameters', 'flow_label', 'flow_name', 'flow', 'current_activity_label', 'status', 'created_at', 'updated_at'];
+    protected $fillable = ['id', 'flow_name', 'flow_label', 'flow_parameters', 'current_activity_id_list', 'current_last_activity_parameters', 'status', 'created_at', 'updated_at'];
 
     /**
      * 创建一个新的进程
@@ -27,20 +28,37 @@ class Process extends Model {
     public static function newInstance($flowName, array $parameters= []){
         $model = new Process();
         $flow = Flow::newInstance($flowName, $parameters);
-        $model->save([
-            'flow' => serialize($flow),
-            'current_activity_label' => $flow->currentActivity->label,
+        $currentActivities = $flow->getCurrentActivityList();
+        $currentActivityIds = [];
+        $currentLastActivityParameters = [];
+        foreach($currentActivities as $key=>$currentActivity){
+            $currentActivityIds[$key] = $currentActivity->id;
+            $currentLastActivityParameters = $currentActivity->getParameters();
+        }
+
+        $res = $model->save([
+            'flow_name' => $flowName,
+            'flow_label' => $flow->label,
+            'flow_parameters' => json_encode($parameters),
+            'current_activity_id_list' => json_encode($currentActivityIds),
+            'current_last_activity_parameters' => json_encode($currentLastActivityParameters),
             'status' => 0,
             'updated_at' => new DateTime()
-        ], true);
+        ]);
+
+        return $res;
     }
 
     public function start(){
         $process = $this;
-        $flow = unserialize($process->flow);
+        $flow = Flow::newInstance($process->flow_name, json_decode($process->flow_parameters, true));
         if(!($flow instanceof Flow)){
             throw new WorkflowException('process(ID: ' . $process->id . ')\'s flow unserialize fail');
         }
+        $currentActivityIds = json_decode($process->current_activity_id_list, true);
+        $currentLastActivityParameters = json_decode($process->current_last_activity_parameters, true);
+        $flow->setCurrentActivities($currentActivityIds, $currentLastActivityParameters);
+
         $flow->onStop(function($returnCode) use($process, $flow){
             $isEnd = $returnCode === Flow::END_CODE;
             $process->stop($flow, $isEnd);
@@ -56,14 +74,36 @@ class Process extends Model {
      * @param $isEnd
      */
     public function stop($flow, $isEnd){
+        $currentActivities = $flow->getCurrentActivityList();
+        $currentActivityIds = [];
+        $currentLastActivityParameters = [];
+        foreach($currentActivities as $key=>$currentActivity){
+            $currentActivityIds[$key] = $currentActivity->id;
+            $currentLastActivityParameters = $currentActivity->getParameters();
+        }
+
         $this->save([
-            'flow' => serialize($flow),
-            'current_activity_label' => $flow->currentActivity->label,
+            'flow_parameters' => json_encode($flow->getParameters()),
+            'current_activity_id_list' => json_encode($currentActivityIds),
+            'current_last_activity_parameters' => json_encode($currentLastActivityParameters),
             'status' => $isEnd ? 1 : 0,
             'updated_at' => new DateTime()
         ], true);
     }
 
+    public static function installSql(){
+        return 'CREATE TABLE `process` (
+                      `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                      `flow_label` varchar(255),
+                      `flow_name` varchar(255),
+                      `flow_parameters` text,
+                      `current_activity_id_list` varchar(255),
+                      `current_last_activity_parameters` text,
+                      `status` tinyint(3),
+                      `created_at` datetime,
+                      `updated_at` datetime
+                    );';
+    }
 
 }
 

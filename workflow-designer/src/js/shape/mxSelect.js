@@ -1,4 +1,4 @@
-function mxBegin(bounds, fill, stroke, strokewidth)
+function mxSelect(bounds, fill, stroke, strokewidth)
 {
 	mxShape.call(this);
 	this.bounds = bounds;
@@ -10,14 +10,14 @@ function mxBegin(bounds, fill, stroke, strokewidth)
 /**
  * Extends mxShape.
  */
-mxUtils.extend(mxBegin, mxShape);
+mxUtils.extend(mxSelect, mxShape);
 
 /**
  * Function: paintVertexShape
  *
  * Redirects to redrawPath for subclasses to work.
  */
-mxBegin.prototype.paintVertexShape = function(c, x, y, w, h)
+mxSelect.prototype.paintVertexShape = function(c, x, y, w, h)
 {
 	c.translate(x, y);
 	c.begin();
@@ -30,16 +30,13 @@ mxBegin.prototype.paintVertexShape = function(c, x, y, w, h)
  *
  * Draws the path for this shape.
  */
-mxBegin.prototype.redrawPath = function(c, x, y, w, h)
+mxSelect.prototype.redrawPath = function(c, x, y, w, h)
 {
-	c.moveTo(h/2, 0);
-	c.lineTo(w-h/2, 0);
-	c.curveTo(w-h/2, 0, w, 0, w, h/2);
-	c.curveTo(w, h/2,w, h, w-h/2, h);
-	c.lineTo(h/2, h);
-	c.curveTo(h/2, h, 0, h, 0, h/2);
-	c.curveTo(0, h/2, 0, 0, h/2, 0);
+	c.moveTo(0, h/2);
+	c.lineTo(w/2, 0);
+	c.lineTo(w, h/2);
+	c.lineTo(w/2, h);
 	c.close();
 };
 
-mxCellRenderer.registerShape('begin', mxBegin);
+mxCellRenderer.registerShape('select', mxSelect);

@@ -2,16 +2,14 @@
 namespace DavinBao\WorkflowCore\Flows;
 
 use DavinBao\WorkflowCore\Activities\EndActivity;
+use DavinBao\WorkflowCore\Activities\SubFlowActivity;
 use DavinBao\WorkflowCore\Connectors\Connector;
 use DOMDocument;
-use DOMElement;
-use DOMNodeList;
 use DavinBao\WorkflowCore\Activities\Activity;
 use DavinBao\WorkflowCore\Activities\BeginActivity;
 use DavinBao\WorkflowCore\Config;
 use DavinBao\WorkflowCore\Exceptions\FlowIsNullException;
 use DavinBao\WorkflowCore\Exceptions\FlowParseException;
-use DavinBao\WorkflowCore\Exceptions\ReturnCodeActivityIsNullException;
 /**
  * Flow Class
  *
@@ -45,11 +43,47 @@ class Flow extends Activity {
         return $this->doAction($this->currentActivity, $this->parameters);
     }
 
-    protected function getNextActivity($returnCode, $thisActivity) {
-        if(isset($thisActivity->nextActivities[$returnCode])){
-            return $thisActivity->nextActivities[$returnCode];
+    /**
+     * 设置ID为$id的活动为当前活动
+     * @param array $currentActivityIds
+     * @param int $index
+     * @param array $currentLastActivityParameters
+     * @throws FlowIsNullException
+     */
+    public function setCurrentActivities(array $currentActivityIds = [], array $currentLastActivityParameters = [], &$index = 0){
+        if($index >= count($currentActivityIds)){
+            throw new FlowParseException('流程（'. $this->label . ')设置当前活动(count:' .count($currentActivityIds). ')时超出了限制（index:' .$index. '）');
         }
-        throw new ReturnCodeActivityIsNullException('活动（tagName:' .$thisActivity->label. '）定义的返回码（Code:' .$returnCode. ') 未找到对应的下一个活动');
+        foreach($this->activities as $activity){
+            if($activity->id == $currentActivityIds[$index]){
+                $index++;
+                $this->currentActivity = $activity;
+                if($activity instanceof SubFlowActivity){
+                    $subFlow = $this->currentActivity->getFlow();
+                    $subFlow->setCurrentActivities($currentActivityIds, $currentLastActivityParameters, $index);
+                }else{
+                    $this->currentActivity->setParameters($currentLastActivityParameters);
+                    return;
+                }
+            }
+        }
+        throw new FlowParseException('流程（'. $this->label . ')不存在活动（ID:' .$currentActivityIds[$index]. '）');
+    }
+
+    /**
+     * 递归获取当前的 Activity 列表
+     * @param array $currentActivities
+     * @param int $index
+     * @return array
+     */
+    public function getCurrentActivityList(&$currentActivities = [], &$index = 0){
+        $currentActivities[$index++] = $this->currentActivity;
+
+        if($this->currentActivity instanceof SubFlowActivity){
+            $subFlow = $this->currentActivity->getFlow();
+            return $subFlow->getCurrentActivityList($currentActivities, $index);
+        }
+        return $currentActivities;
     }
 
     private function doAction(Activity $activity, array $parameters = []){
@@ -68,7 +102,9 @@ class Flow extends Activity {
         if($returnCode < 0 || ($activity instanceof EndActivity)){
             return $returnCode;
         }
-        $self->currentActivity = $self->getNextActivity($returnCode, $activity);
+        //获取下一个活动
+        $self->currentActivity = $activity->getNext($returnCode);
+
         return $self->doAction($self->currentActivity, $nextActivityParameters);
     }
     //endregion
@@ -84,21 +120,32 @@ class Flow extends Activity {
         $mxGraphModelDoc = $doc->createElement('mxGraphModel');
         $rootDoc = $doc->createElement('root');
         $mxGraphModelDoc->appendChild($doc->importNode($rootDoc, true));
-
         $rootDoc->appendChild($doc->importNode($this->xmlDoc, true));
-
-        foreach($this->nextActivities as $nextActivity){
+        //生成绘图层
+        $layerDoc = $doc->createElement('Layer');
+        $layerDoc->setAttribute('id', '1');
+        $layerDoc->setAttribute('label', 'Default Layer');
+        $mxCellDoc = $doc->createElement('mxCell');
+        $mxCellDoc->setAttribute('parent', '0');
+        $layerDoc->appendChild($doc->importNode($mxCellDoc, true));
+        $rootDoc->appendChild($doc->importNode($layerDoc, true));
+        //生成活动列表
+        foreach($this->activities as $nextActivity){
             $rootDoc->appendChild($doc->importNode($nextActivity->toDoc(), true));
+        }
+        //生成连接器列表
+        foreach($this->connectors as $connector){
+            $rootDoc->appendChild($doc->importNode($connector->toDoc(), true));
         }
 
         return $mxGraphModelDoc;
     }
 
-    public static function newInstance($flowName, array $parameters = []){
+    public static function newInstance($flowName){
         //加载XML文件
         $flowFilePath = Config::get('flow_file_path');
         $xmlDoc = new \DOMDocument();
-        $xmlDoc->load($flowFilePath . $flowName);
+        $xmlDoc->load($flowFilePath . $flowName . '.xml');
         //解析XML文档
         $rootDocs = $xmlDoc->getElementsByTagName('root');
         if(!$rootDocs || $rootDocs->length <= 0){
@@ -116,8 +163,11 @@ class Flow extends Activity {
                     case 'Connector':
                         array_push($connectorDocs, $childNode);
                         break;
+                    case 'Layer':
+                        continue;
                     default:
                         array_push($activityDocs, $childNode);
+                        break;
                 }
             }
         }
@@ -126,21 +176,22 @@ class Flow extends Activity {
         }
         //对象实例化
         $model = Flow::getInstance($workflowDoc);
+
         foreach($connectorDocs as $connectorDoc){
             array_push($model->connectors, Connector::getInstance($connectorDoc));
         }
         foreach($activityDocs as $activityDoc){
             array_push($model->activities, Activity::getInstance($activityDoc));
         }
-        if(!$model->connectors || $model->connectors->length <= 0){
+        if(!is_array($model->connectors) || count($model->connectors) <= 0){
             throw new FlowParseException('流程(' .$flowName. ')的连接线不存在');
         }
-        if(!$model->activities || $model->activities->length <= 0){
+        if(!is_array($model->activities) || count($model->activities) <= 0){
             throw new FlowParseException('流程(' .$flowName. ')的活动不存在');
         }
-        $model->initNextActivities($model->connectors);
-        $model->parameters = $parameters;
-//        $model->currentActivity = $model->beginActivity;
+        //初始化以后的活动列表
+        $model->initNextActivities($model->activities, $model->connectors);
+        $model->currentActivity = $model->beginActivity;
         //添加停止后的事件
         $model->onStop(function($returnCode) use ($model){
             //活动结束， 记录日志
@@ -152,18 +203,20 @@ class Flow extends Activity {
 
     /**
      * @see parent::initNextActivities
+     * @param array $activities
+     * @param array $connectors
      * @throws FlowParseException
      */
-    public function initNextActivities(){
-        $xmlDoc = $this->xmlDoc;
-        $connectorDocs = $this->connectorDocs;
-
-        $beginDocs = $xmlDoc->parentNode->getElementsByTagName('BeginActivity');
-        if(!$beginDocs || $beginDocs->length <= 0){
-            throw new FlowParseException('流程未设置 Begin 活动');
+    public function initNextActivities(array $activities = [], array $connectors = []){
+        foreach($activities as $activity){
+            if($activity instanceof BeginActivity){
+                $activity->initNextActivities($activities, $connectors);
+                $this->beginActivity = $this->nextActivities[0] = $activity;
+                return;
+            }
         }
-        $beginDoc = $beginDocs->item(0);
-        $this->beginActivity = $this->nextActivities[0] = Activity::getInstance($beginDoc, $connectorDocs);
+
+        throw new FlowParseException('流程未设置 Begin 活动');
     }
     //endregion
 
@@ -195,16 +248,23 @@ class Flow extends Activity {
     /**
      * 打开并校验一个流程
      * @param null $flowName
+     * @return string
+     * @throws FlowIsNullException
      * @throws FlowParseException
      * @throws \DavinBao\WorkflowCore\Exceptions\WorkflowException
      */
-    public static function open($flowName = null){
+    public static function getXml($flowName = null){
+        //支持传递带后缀.xml的流程文件名
+        if(strpos($flowName, '.xml') !== false){
+            $flowName = substr($flowName, 0, strlen($flowName) - 4);
+        }
+
         $flowFilePath = Config::get('flow_file_path');
         if(is_null($flowName)){
-            echo '文件名称为空，打开失败！';
+            throw new FlowIsNullException('文件名称为空，打开失败！');
             die;
-        }elseif(!file_exists($flowFilePath . $flowName)){
-            echo '文件不存在，打开失败！';
+        }elseif(!file_exists($flowFilePath . $flowName . '.xml')){
+            throw new FlowIsNullException('文件不存在，打开失败！');
             die;
         }
 
@@ -213,22 +273,8 @@ class Flow extends Activity {
 
         $xmlDoc = new \DOMDocument();
         $xmlDoc->appendChild($xmlDoc->importNode($elements, true));
-//        $xmlDoc->load($flowFilePath . $flowName);
-//        $rootDocs = $xmlDoc->getElementsByTagName('root');
-//        if(!$rootDocs || $rootDocs->length <= 0){
-//            throw new FlowParseException('root 节点不存在');
-//        }
-//        $newChildNodes = new DOMNodeList();
-//        foreach($rootDocs->item(0)->childNodes as $childNode){
-//            if($childNode->nodeType === XML_ELEMENT_NODE){
-//                $node = Activity::getInstance($childNode, null);
-//                print_r($node->toDoc());
-//            }
-//
-//        }
 
-        header('Content-Type:text/xml');
-        echo $xmlDoc->saveXML();
+        return $xmlDoc->saveXML();
     }
     //endregion
 }

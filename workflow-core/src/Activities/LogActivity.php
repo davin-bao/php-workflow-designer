@@ -6,16 +6,19 @@ namespace DavinBao\WorkflowCore\Activities;
  *
  * @class  Activity
  */
-class LogActivity extends TaskActivity {
+class LogActivity extends SelectActivity {
 
     const RETURN_CODE = [1];
 
+    public $description = '传递数据写入日志';
+
     protected $inParameterKeys = [
-        'inLogContent'
+        'inLogContent'=>'12'
     ];
 
     protected $outParameterKeys = [
-        'outLogFileName'
+        'outLogFileName'=>'34',
+        'test'=>'213'
     ];
 
     public function action(){

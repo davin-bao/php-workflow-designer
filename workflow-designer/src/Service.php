@@ -1,9 +1,12 @@
 <?php
 namespace DavinBao\WorkflowDesigner;
+
 use DavinBao\WorkflowCore\Activities\Activity;
+use DavinBao\WorkflowCore\Activities\LogTrait;
 use DavinBao\WorkflowCore\Config;
-use DavinBao\WorkflowCore\ActivityParser;
+use DavinBao\WorkflowCore\Engine;
 use DavinBao\WorkflowCore\Flows\Flow;
+use DavinBao\WorkflowCore\Models\Process;
 
 /**
  * Service Class
@@ -11,11 +14,20 @@ use DavinBao\WorkflowCore\Flows\Flow;
  * @class  Activity
  */
 class Service {
+    use LogTrait;
 
     public function __construct(array $request){
         $action = array_get($request, '_action',  'open');
 
-        call_user_func_array(array($this, $action), array($request));
+        try{
+            call_user_func_array(array($this, $action), array($request));
+        }catch(\Exception $e){
+            self::getLogger()->error('请求（'. $action . ')错误：' .$e->getMessage().PHP_EOL. 'Trace：' .$e->getTraceAsString());
+            http_response_code(intval($e->getCode()));
+            echo $e->getMessage();
+            print_r($e->getTraceAsString());
+            die;
+        }
     }
 
     public function index(){
@@ -30,16 +42,9 @@ class Service {
 
     public function open($request){
         $filename = array_get($request, 'filename');
-//        $flowFilePath = Config::get('flow_file_path');
-//        if(is_null($filename)){
-//            echo '文件名称为空，打开失败！';
-//            die;
-//        }elseif(!file_exists($flowFilePath . $filename)){
-//            echo '文件不存在，打开失败！';
-//            die;
-//        }
-//        header('Content-Type:text/xml');
-        echo Flow::open($filename);
+        header('Content-Type:text/xml');
+
+        echo Flow::getXml($filename);
     }
 
     public function save($request){
@@ -58,15 +63,21 @@ class Service {
     }
 
     public function export(){
-        print_r(Flow::open('workflow.xml'));
-//        print_r(Flow::newInstance('workflow.xml', [
+
+        Engine::init()->createProcess('workflow1', [
+            'logContactKey'=>'test123'
+        ])->start();
+//        Engine::init()->setProcess(9)->start();
+
+//        print_r(Flow::getXml('workflow1'));
+//        print_r(Flow::newInstance('workflow1', [
 //            'logContactKey'=>'test123'
 //        ])->run());
 //        echo 'export';
     }
 
     /**
-     * 获取所有模板列表
+     * 获取所有活动模板列表
      */
     public function templates(){
         header('Content-Type:text/xml');
@@ -78,6 +89,22 @@ class Service {
         }
 
         echo '<Activities>'.$templatesXml.'</Activities>';
+    }
+
+    /**
+     * 获取所有互动列表
+     */
+    public function activities(){
+        header('Content-Type:text/xml');
+        $classNames = Activity::getAllActivityClassName();
+        $xml = '';
+        foreach($classNames as $className) {
+            $class = new \ReflectionClass($className);
+            $instance = $class->newInstance();
+            $xml .= '<Activity name="' .basename($className). '" label="' .$instance->label .'" description="' .$instance->description .'"></Activity>';
+        }
+
+        echo '<Activities>'.$xml.'</Activities>';
     }
 }
 

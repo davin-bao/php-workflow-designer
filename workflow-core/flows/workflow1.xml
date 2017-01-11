@@ -1,34 +1,34 @@
 <mxGraphModel>
     <root>
-        <Workflow label="workflow" description="" href="" inLogContact="logContactKey" id="0">
+        <Workflow label="workflow1" description="" href="" inLogContact="logContactKey" id="0">
             <mxCell/>
         </Workflow>
-        <Layer id="1" label="Default Layer">
+        <Layer label="Default Layer" id="1">
             <mxCell parent="0"/>
         </Layer>
-        <BeginActivity description="" id="3" href="" label="Begin">
+        <BeginActivity description="" href="" label="Begin" id="3">
             <mxCell style="begin" parent="1" vertex="1">
                 <mxGeometry x="540" y="64" width="32" height="32" as="geometry"/>
             </mxCell>
         </BeginActivity>
-        <SubFlowActivity description="" id="6" href="" label="SubFlow" inFlowName="">
+        <SubFlowActivity flowName="workflow111" description="" href="" label="SubFlow" id="6">
             <mxCell style="task" parent="1" vertex="1">
                 <mxGeometry x="610" y="170" width="32" height="32" as="geometry"/>
             </mxCell>
         </SubFlowActivity>
-        <EndActivity returnCode="-1" description="" id="13" href="" label="End">
+        <EndActivity returnCode="-1" description="" href="" label="End" id="13">
             <mxCell style="ellipse" parent="1" vertex="1">
                 <mxGeometry x="750" y="246" width="32" height="32" as="geometry"/>
             </mxCell>
         </EndActivity>
         <Connector label="0" id="8">
             <mxCell parent="1" source="3" target="6" edge="1">
-                <mxGeometry x="" y="" width="" height="" as="geometry"/>
+                <mxGeometry as="geometry"/>
             </mxCell>
         </Connector>
         <Connector label="4" id="11">
             <mxCell parent="1" source="6" target="13" edge="1">
-                <mxGeometry x="" y="" width="" height="" as="geometry"/>
+                <mxGeometry as="geometry"/>
             </mxCell>
         </Connector>
     </root>

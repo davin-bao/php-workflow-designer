@@ -6,10 +6,10 @@
 		<add as="34" action="enterGroup"/>
 		<add as="35" action="refresh"/>
 		<add as="36" action="home"/>
-		<add as="37" action="selectPrevious"/>
-		<add as="38" action="selectParent"/>
-		<add as="40" action="selectChild"/>
-		<add as="39" action="selectNext"/>
+		<add as="37" action="moveLeft"/>
+		<add as="38" action="moveUp"/>
+		<add as="39" action="moveRight"/>
+		<add as="40" action="moveDown"/>
 		<add as="46" action="delete"/>
 		<add as="65" control="1" action="selectAll"/>
 		<add as="90" control="1" action="undo"/>
@@ -19,8 +19,9 @@
 		<add as="86" control="1" action="paste"/>
 		<add as="71" control="1" action="group"/>
 		<add as="85" control="1" action="ungroup"/>
-		<add as="113" action="edit"/>		
-		<add as="123" action="showProperties"/>
+		<add as="113" action="edit"/>
+		<add as="120" action="loadActivity"/>  <!--F9-->
+		<add as="121" action="showProperties"/>  <!--F10-->
 		<add as="107" action="zoomIn"/>
 		<add as="109" action="zoomOut"/>
 	</mxDefaultKeyHandler>

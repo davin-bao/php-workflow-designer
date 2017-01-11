@@ -12,8 +12,13 @@ class EndActivity extends Activity {
         self::END_CODE
     ];
 
+    protected $shape = 'end';
     protected $shapeIcon = 'images/end.gif';
     protected $shapePressedIcon = 'images/end-pressed.gif';
+    protected $shapeFillColor = '#FFDEDE';
+
+    protected $width = 64;
+    protected $height = 32;
 
     public $returnCode = self::END_CODE;
 

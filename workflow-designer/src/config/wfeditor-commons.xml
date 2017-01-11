@@ -70,7 +70,7 @@
 	<add as="createTasks"><![CDATA[
 		function (div)
 		{
-			var off = 30;
+			var off = 0;
 
 			if (this.graph != null)
 			{
@@ -156,9 +156,12 @@
 					{
 						mxUtils.para(div, 'Properties');
 						var attrs = value.attributes;
-
+						var hiddenAttributes = ['shape', 'shapeIcon', 'shapePressedIcon'];
 						for (var i = 0; i < attrs.length; i++)
 						{
+							if(hiddenAttributes.indexOf(attrs[i].nodeName) > -1){
+								continue;
+							}
 							mxUtils.linkAction(div, attrs[i].nodeName + ':' + attrs[i].value, this, 'showProperties', off);
 							mxUtils.br(div);
 						}

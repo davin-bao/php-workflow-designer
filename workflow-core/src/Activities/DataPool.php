@@ -58,11 +58,11 @@ trait DataPool {
     }
 
     /**
-     * 初始化参数属性
+     * 初始化顶级参数属性
      * @param DOMElement $xmlDoc
      * @throws FlowParseException
      */
-    public function initAttributes(DOMElement $xmlDoc){
+    public function initTopAttributes(DOMElement $xmlDoc){
         $inParameters = [];
         $outParameters = [];
         foreach($xmlDoc->attributes as $xmlAttribute){

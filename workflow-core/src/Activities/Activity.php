@@ -3,13 +3,10 @@ namespace DavinBao\WorkflowCore\Activities;
 
 use DavinBao\WorkflowCore\Config;
 use DavinBao\WorkflowCore\Exceptions\FlowParseException;
-use DavinBao\WorkflowCore\Flows\Flow;
+use DavinBao\WorkflowCore\Exceptions\ReturnCodeActivityIsNullException;
 use DavinBao\WorkflowCore\Node;
 use DOMDocument;
-use DOMNodeList;
 use DOMElement;
-use DavinBao\WorkflowCore\ActivityParser;
-use Illuminate\Database\Connectors\Connector;
 
 /**
  * Activity Base Class
@@ -17,7 +14,7 @@ use Illuminate\Database\Connectors\Connector;
  * @class  Activity
  */
 abstract class Activity extends Node {
-    use EventTrait, LogTrait, DataPool;
+    use EventTrait, LogTrait;
 
     //常用返回码定义
     const BEGIN_CODE = 0;
@@ -32,6 +29,8 @@ abstract class Activity extends Node {
     protected $nextActivities = [];
     //传递的参数
     protected $parameters = [];
+
+    public $description = '';
 
     /**
      * 连接器模板
@@ -80,6 +79,19 @@ abstract class Activity extends Node {
 
     abstract protected function action();
 
+    /**
+     * 获取下一个活动
+     * @param $returnCode
+     * @return mixed
+     * @throws ReturnCodeActivityIsNullException
+     */
+    public function getNext($returnCode){
+        if(!isset($this->nextActivities[$returnCode])){
+            throw new ReturnCodeActivityIsNullException('活动（tagName:' .$this->label. '）定义的返回码（Code:' .$returnCode. ') 未找到对应的下一个活动');
+        }
+        return $this->nextActivities[$returnCode];
+    }
+
     //endregion
 
     //region 模板相关方法
@@ -101,33 +113,6 @@ abstract class Activity extends Node {
         $activityIcon = $model->shapeIcon;
         $activityPressedIcon = $model->shapePressedIcon;
         //获取参数
-//        $properties = [];
-//        $inProperties = $model->inParameterKeys;
-//        $outProperties = $model->outParameterKeys;
-
-//        foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property){
-//            $propertyName = $property->getName();
-//            if(in_array($propertyName, ['id'])) continue;
-//            $properties[$propertyName] = $property->getValue($model);
-//        }
-//        $properties['label'] = empty($properties['label']) ? $activityShortName : $properties['label'];
-
-//        $propertiesStr = '';
-//        foreach($properties as $key=>$value){
-//            $propertiesStr .= $key  . '="' .$value. '" ';
-//        }
-//        $inPropertiesStr = '';
-//        foreach($inProperties as $value){
-//            $inPropertiesStr .= $value . '="" ';
-//        }
-//        $outPropertiesStr = '';
-//        foreach($outProperties as $value){
-//            $outPropertiesStr .= $value  . '="" ';
-//        }
-//        $propertiesStr = substr($propertiesStr, 0, strlen($propertiesStr) - 1);
-//        $inPropertiesStr = substr($inPropertiesStr, 0, strlen($inPropertiesStr) - 1);
-//        $outPropertiesStr = substr($outPropertiesStr, 0, strlen($outPropertiesStr) - 1);
-
         $doc = new DOMDocument();
         $templateDoc = $doc->createElement('add');
         $templateDoc->setAttribute('as', $activityShortName);
@@ -156,18 +141,14 @@ abstract class Activity extends Node {
     public function toDoc(){
         $doc = new DOMDocument();
         $activityFullName = basename(get_called_class());
-        $xmlDoc = $doc->createElement($activityFullName);
         $activityShortName = substr($activityFullName, 0, strlen($activityFullName) - 8);
+        $xmlDoc = $doc->createElement($activityFullName);
 
         $mxCellDoc = $doc->createElement('mxCell');
-//        $mxCellDoc = new DOMElement();
-//        $mxCellDoc->tagName = 'mxCell';
         $mxCellDoc->setAttribute('style', $this->shape);
-        $mxCellDoc->setAttribute('parent', $this->parentId);
+        $mxCellDoc->setAttribute('parent', $this->parent);
         $mxCellDoc->setAttribute('vertex', 1);
         $mxGeometryDoc = $doc->createElement('mxGeometry');
-//        $mxGeometryDoc = new DOMElement();
-//        $mxGeometryDoc->tagName = 'mxGeometry';
         $mxGeometryDoc->setAttribute('x', $this->x);
         $mxGeometryDoc->setAttribute('y', $this->y);
         $mxGeometryDoc->setAttribute('width', $this->width);
@@ -176,19 +157,20 @@ abstract class Activity extends Node {
         $mxCellDoc->appendChild($doc->importNode($mxGeometryDoc, true));
         $xmlDoc->appendChild($doc->importNode($mxCellDoc, true));
 
-        //获取参数
         $class = new \ReflectionClass(get_called_class());
+        //获取返回码表
+        $xmlDoc->setAttribute('RETURN_CODE', implode(',', $class->getConstant('RETURN_CODE')));
+        //获取参数
         $properties = [];
         foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property){
             $propertyName = $property->getName();
-            if(in_array($propertyName, ['id'])) continue;
             $properties[$propertyName] = $property->getValue($this);
         }
-        foreach($this->inParameterKeys as $inParameterKey){
-            $properties[$inParameterKey] = '';
+        foreach($this->inParameterKeys as $key=>$value){
+            $properties[$key] = $value;
         }
-        foreach($this->outParameterKeys as $outParameterKey){
-            $properties[$outParameterKey] = '';
+        foreach($this->outParameterKeys as $key=>$value){
+            $properties[$key] = $value;
         }
         $properties['label'] = empty($properties['label']) ? $activityShortName : $properties['label'];
 
@@ -203,66 +185,51 @@ abstract class Activity extends Node {
      * 根据模板内容生成新的活动实例
      *
      * @param DOMElement|null $xmlDoc
-     * @param DOMNodeList|null $connectorDocs
      * @return mixed
      * @throws FlowParseException
      */
-    public static function getInstance(DOMElement $xmlDoc = null, DOMNodeList $connectorDocs = null){
+    public static function getInstance(DOMElement $xmlDoc = null){
         $activityName = static::getClassByTagName($xmlDoc->tagName);
         $activity = new $activityName();
         //存储模板及连接器信息
         $activity->xmlDoc = $xmlDoc;
-        $activity->connectorDocs = $connectorDocs;
-        //初始化属性
-        $activity->initAttributes($xmlDoc);
-        //初始化以后的活动列表
-        $activity->initNextActivities();
+        //初始化顶级属性
+        $activity->initAttributes();
 
         return $activity;
     }
 
     /**
      * 根据流程模板定义的连接线实例化所有下一步的活动
-     * @return array
+     * @param array $activities
+     * @param array $connectors
      * @throws FlowParseException
      */
-    public function initNextActivities(){
+    public function initNextActivities(array $activities = [], array $connectors = []){
         $nextActivities = [];
-        if(!is_null($this->connectorDocs)){
-            foreach($this->connectorDocs as $connectorDoc){
-                if(!$connectorDoc->hasAttribute('label')){
-                    throw new FlowParseException('连接线(ID:' . $connectorDoc->getAttribute('id') . ') 未定义 label 属性');
-                }
-                $label = $connectorDoc->getAttribute('label');
-                $mxCellDocs = $connectorDoc->getElementsByTagName('mxCell');
-                if(!$mxCellDocs || $mxCellDocs->length <= 0){
-                    throw new FlowParseException('连接线(ID:' . $connectorDoc->getAttribute('id') . ') 未定义子节点 mxCell');
-                }
-                $mxCellDoc = $mxCellDocs->item(0);
-                if(!$mxCellDoc->hasAttribute('source') || !$mxCellDoc->hasAttribute('target')){
-                    throw new FlowParseException('连接线(ID:' . $connectorDoc->getAttribute('id') . ')\的子节点不存在属性 source 或者 target');
-                }
-                if($mxCellDoc->getAttribute('source') === $this->id){
-                    $key = intval($label);
-                    $targetId = $mxCellDoc->getAttribute('target');
-                    //查找下一个 Activity
-                    foreach($this->xmlDoc->parentNode->childNodes as $childNode){
-                        if($childNode->nodeType != XML_ELEMENT_NODE  || !$childNode->hasAttribute('id')){
-                            continue;
-                        }
-                        if($targetId === $childNode->getAttribute('id')){
-                            $nextActivities[$key] = Activity::getInstance($childNode, $this->connectorDocs);
-                        }
+        foreach($connectors as $connector){
+            if($connector->source == $this->id){
+                $key = intval($connector->label);
+                foreach($activities as $activity){
+                    if($connector->target === $activity->id){
+                        $nextActivities[$key] = $activity;
+                        $activity->initNextActivities($activities, $connectors);
                     }
                 }
             }
         }
-
         $this->nextActivities = $nextActivities;
     }
     //endregion
 
     //region 活动的工具方法
+
+    public function getParameters(){
+        return $this->parameters;
+    }
+    public function setParameters(array $parameters=[]){
+        $this->parameters = $parameters;
+    }
 
     /**
      * 通过标签名称获取类名称

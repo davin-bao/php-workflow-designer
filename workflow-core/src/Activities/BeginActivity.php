@@ -15,6 +15,10 @@ class BeginActivity extends Activity {
     protected $shape = 'begin';
     protected $shapeIcon = 'images/begin.gif';
     protected $shapePressedIcon = 'images/begin-pressed.gif';
+    protected $shapeFillColor = '#DEFFDE';
+
+    protected $width = 64;
+    protected $height = 32;
 
     /**
      * @param array $parameters

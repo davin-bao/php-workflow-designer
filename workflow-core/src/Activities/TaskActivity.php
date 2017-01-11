@@ -12,5 +12,7 @@ abstract class TaskActivity extends Activity {
     protected $shapeIcon = 'images/task.gif';
     protected $shapePressedIcon = 'images/task-pressed.gif';
 
+    protected $width = 128;
+    protected $height = 32;
 }
 

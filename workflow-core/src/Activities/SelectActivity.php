@@ -8,9 +8,12 @@ namespace DavinBao\WorkflowCore\Activities;
  */
 abstract class SelectActivity extends Activity {
 
-    public $shape = 'rhombus';
+    public $shape = 'select';
     public $shapeIcon = 'images/rhombus.gif';
     public $shapePressedIcon = 'images/rhombus-pressed.gif';
+
+    protected $width = 128;
+    protected $height = 64;
 
 }
 

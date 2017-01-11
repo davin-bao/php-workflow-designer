@@ -2,6 +2,10 @@ var mxActivityManager = {
 	editor: null,
 	init: function(){
 		mxClient.include('js/shape/mxBegin.js');
+		mxClient.include('js/shape/mxEnd.js');
+		mxClient.include('js/shape/mxTask.js');
+		mxClient.include('js/shape/mxSelect.js');
+		mxClient.include('js/shape/mxSubFlow.js');
 	},
 	loadTemplate: function (editor) {
 		var self = this;
@@ -89,41 +93,22 @@ var mxActivityManager = {
 				// Adds a readonly field for the cell id
 				var id = form.addText('ID', cell.getId());
 				id.setAttribute('readonly', 'true');
-
-				var geo = null;
-				var yField = null;
-				var xField = null;
-				var widthField = null;
-				var heightField = null;
-
-				// Adds fields for the location and size
-				if (model.isVertex(cell))
-				{
-					geo = model.getGeometry(cell);
-
-					if (geo != null)
-					{
-						yField = form.addText('top', geo.y);
-						xField = form.addText('left', geo.x);
-						widthField = form.addText('width', geo.width);
-						heightField = form.addText('height', geo.height);
-					}
-				}
-
-				// Adds a field for the cell style
-				var tmp = model.getStyle(cell);
-				var style = form.addText('Style', tmp || '');
+				id.setAttribute('disabled', 'disabled');
 
 				// Creates textareas for each attribute of the
 				// user object within the cell
 				var attrs = value.attributes;
 				var texts = [];
+				var hiddenAttributes = ['shape', 'shapeIcon', 'shapePressedIcon'];
 
 				for (var i = 0; i < attrs.length; i++)
 				{
 					// Creates a textarea with more lines for
 					// the cell label
 					var name = attrs[i].nodeName;
+					if(hiddenAttributes.indexOf(name) > -1){
+						continue;
+					}
 					var value = attrs[i].value;
 					var rows = (attrs[i].nodeName == 'label') ? 4 : 2;
 					var input = document.createElement('textarea');
@@ -132,6 +117,11 @@ var mxActivityManager = {
 						rows--;
 					}
 					input.setAttribute('rows', rows || 2);
+					//将 RETURN_CODE 设置为只读
+					if (name == 'RETURN_CODE') {
+						input.setAttribute('readonly', 'true');
+						input.setAttribute('disabled', 'disabled');
+					}
 					input.value = value;
 					var tr = document.createElement('tr');
 					var td = document.createElement('td');
@@ -164,9 +154,28 @@ var mxActivityManager = {
 					//	(attrs[i].nodeName == 'label') ? 4 : 2);
 				}
 
-				// Adds an OK and Cancel button to the dialog
-				// contents and implements the respective
-				// actions below
+				var geo = null;
+				var yField = null;
+				var xField = null;
+				var widthField = null;
+				var heightField = null;
+
+				// Adds fields for the location and size
+				if (model.isVertex(cell))
+				{
+					geo = model.getGeometry(cell);
+
+					if (geo != null)
+					{
+						yField = form.addText('top', geo.y);
+						xField = form.addText('left', geo.x);
+						widthField = form.addText('width', geo.width);
+						heightField = form.addText('height', geo.height);
+					}
+				}
+
+				//var tmp = model.getStyle(cell);
+				//var style = form.addText('Style', tmp || '');
 
 				// Defines the function to be executed when the
 				// OK button is pressed in the dialog
@@ -192,6 +201,9 @@ var mxActivityManager = {
 							model.setGeometry(cell, geo);
 						}
 
+						var tmp = model.getStyle(cell);
+						var style = form.addText('Style', tmp || '');
+
 						// Applies the style
 						if (style.value.length > 0)
 						{
@@ -206,11 +218,11 @@ var mxActivityManager = {
 						// attribute and executes it using the
 						// model, which will also make the change
 						// part of the current transaction
-						for (var i=0; i<attrs.length; i++)
+						for (var key in texts)
 						{
 							var edit = new mxCellAttributeChange(
-								cell, attrs[i].nodeName,
-								texts[i].value);
+								cell, attrs[key].nodeName,
+								texts[key].value);
 							model.execute(edit);
 						}
 

@@ -6,5 +6,5 @@ return [
         ['path' => '../../workflow-core/src/Activities', 'namespace' => 'DavinBao\WorkflowCore\Activities\\']
     ],
 
-    'db_path' => ''
+    'db_path' => 'db.sqlite'
 ];

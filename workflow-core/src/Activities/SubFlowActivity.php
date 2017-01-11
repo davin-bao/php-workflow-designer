@@ -7,16 +7,32 @@ use DavinBao\WorkflowCore\Flows\Flow;
  *
  * @class  Activity
  */
-class SubFlowActivity extends TaskActivity {
+class SubFlowActivity extends Activity {
 
     const RETURN_CODE = [];
 
-    protected $inParameterKeys = [
-        'flow_name'
-    ];
+    public $flowName = '';
+
+    protected $shape = 'subflow';
+    protected $shapeIcon = 'images/subflow.gif';
+    protected $shapePressedIcon = 'images/subflow-pressed.gif';
+    protected $shapeFillColor = '#FFAD5C';
+    protected $width = 64;
+    protected $height = 32;
+
+    private $flow = null;
 
     public function action(){
-        return Flow::newInstance($this->flow_name, $this->parameters)->run();
+        return $this->flow->run();
+    }
+
+    protected function initAttributes(){
+        parent::initAttributes();
+        $this->flow = Flow::newInstance($this->flowName, $this->parameters);
+    }
+
+    public function getFlow(){
+        return $this->flow;
     }
 }
 
